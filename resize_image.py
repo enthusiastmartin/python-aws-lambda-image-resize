@@ -72,9 +72,6 @@ def process_image(s3_conn, local_source_path, local_resize_path, desired_size, s
 
 
 def handler(event, context):
-    if DEBUG:
-        logging.debug("Handler starting for event " + str(event))
-
     s3_conn = connect_s3()
 
     for record in event['Records']:
