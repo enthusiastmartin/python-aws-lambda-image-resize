@@ -46,19 +46,10 @@ def connect_s3():
 
 
 def process_image(s3_conn, local_source_path, local_resize_path, desired_size, s3_path):
-    try:
-        with Image.open(local_source_path) as image:
-            resized_image = resizeimage.resize_cover(image, desired_size)
-            resized_image.save(local_resize_path, image.format)
-    except FileNotFoundError:
-        logging.error("File not found {}".format(local_source_path))
-        raise
-    except ImageSizeError:
-        logging.debug("Image too small to resize")
-        raise
-    except Exception:
-        traceback.print_exc(file=sys.stdout)
-        raise
+
+    with Image.open(local_source_path) as image:
+        resized_image = resizeimage.resize_cover(image, desired_size)
+        resized_image.save(local_resize_path, image.format)
 
     s3_conn['client'].upload_file(local_resize_path, '{bucket_name}'.format(bucket_name=TARGET_BuCKET_NAME), s3_path)
     object_acl = s3_conn['resource'].ObjectAcl('{bucket_name}'.format(bucket_name=TARGET_BuCKET_NAME), s3_path)
@@ -94,6 +85,9 @@ def handler(event, context):
             # traceback.print_exc(file=sys.stdout)
         except ImageSizeError as e:
             logging.error(str(e))
+        except Exception as e:
+            logging.error(str(e))
+            traceback.print_exc(file=sys.stderr)
         finally:
             logging.info("Cleaning up")
 
